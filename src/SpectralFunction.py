@@ -5,6 +5,24 @@ import numpy as np
 from scipy.special import spence, gamma # type: ignore
 
 from Constants import *
+
+def end_point(mi, mf, betatype) :
+    """
+    Calculate the electron end point energy of the transition in units of me c^2
+    
+    :param mi: Atomic mass of the initial nucleus (in keV)
+    :param mf: Atomic mass of the final nucleus (in keV)
+    
+    """
+    delta = mi - mf
+    e0 = 0
+    if betatype == "beta-" :
+        e0 = (delta + me)/me
+    elif betatype == "beta+" :
+        e0 = (delta - 1*me)/me
+    Ecp_max = ( (((delta-me)/me)**2) + 2 * ((delta-me)/me))/(2*(mf/me)) # Maximum of kinetic energy of the recoil nucleus
+    return e0 - Ecp_max
+
 # fermi function
 def fermi_function(W, Z, R):
     """Traditional Fermi Function

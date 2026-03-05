@@ -369,7 +369,7 @@ def _sample_chunk_hard(n_chunk, Delta, CS, Lambda, MF, MGT, Z, R, M, wmax):
         g_calc = g(beta, E2, p2k)
         mBR_val = MBR(E1, E2, K, p12, p1k, p2k, Lambda, MF, MGT, M, Z, R)
         weight = 1 / (2**13 * np.pi**8 * M**2) * K * beta * E1 * E2 * mBR_val / g_calc
-        
+
         if np.random.uniform() < weight / wmax:
             E_list.append([E1, E2, K])
             n1_list.append(n1)
@@ -397,30 +397,15 @@ def sampleHard(n, Delta, CS, Lambda, MF, MGT, Z, R, M, wmax, num_threads):
 
     return E_sampled, n1_sampled, n2_sampled, ng_sampled
 
-def sampleEvents(A, Z, Delta, MF, MGT, nTotal):
-    #Delta = 3505+me
-    #MF = 0
-    #MGT = 6
-    #Z = 2
-    #A = 6
-    #nTotal = int(1e5)
-    Lambda = 1.2754
+def sampleEvents(A, Z, Delta, mi, MF, MGT, nTotal):
     N = (A-Z)
-    R = 1.2*A**0.33/NATLENGTH
-    CS = 0.001
-    M = (Z*mp + N*mn)
+    R = r0*A**0.33/NATLENGTH
+    M = mi
     n_threads = os.cpu_count()
     
-
     Q = Delta-me
-
     Er_max = (Q**2+2*Q*me)/2/M
-
-    print(Er_max)
-
-    E0 = Delta-Er_max
-
-    
+    E0 = Delta
 
     # Tree Level
 
@@ -452,8 +437,8 @@ def sampleEvents(A, Z, Delta, MF, MGT, nTotal):
     nS = np.sum(np.random.uniform(size=nTotal) > PH)
     nH = nTotal-nS
 
-    print(nS, nH)
-    print(nS/nTotal)
+    print('nS :', nS, 'nH :', nH)
+    print('nS/nTotal :', nS/nTotal)
 
     # Sample soft 
     
@@ -488,6 +473,7 @@ def sampleEvents(A, Z, Delta, MF, MGT, nTotal):
     plt.hist(E2_c_0[:, 0], bins=bins)
     plt.hist(E2_c_S[:, 0], bins=bins)
     plt.hist(E_H[:, 1], bins=bins)
+    plt.xlabel("Energy (keV)")
 
     hist_0, _ = np.histogram(E2_c_0[:, 0], bins=bins)
     hist_S, _ = np.histogram(E2_c_S[:, 0], bins=bins)
@@ -499,8 +485,9 @@ def sampleEvents(A, Z, Delta, MF, MGT, nTotal):
     plt.plot(bins[:-1], (hist_S+hist_H_sum)/hist_0, label="Indistinguishable photon")
     plt.plot(bins[:-1], 1+ALPHA/(2*np.pi)*sirlin_g(bins[:-1]/me, Delta/me), label="Sirlin")
     plt.legend(loc=0)
+    plt.xlabel("Energy (keV)")
 
-    bins_r = np.linspace(0, 1.5, 50)
+    bins_r = np.linspace(0, Er_max, 50)
 
     hist_0_r, _ = np.histogram(fourMom3_0[0, :]-M, bins=bins_r)
     hist_S_r, _ = np.histogram(fourMom3_S[0, :]-M, bins=bins_r)
@@ -510,11 +497,10 @@ def sampleEvents(A, Z, Delta, MF, MGT, nTotal):
     plt.hist(fourMom3_0[0, :]-M, bins=bins_r)
     plt.hist(fourMom3_S[0, :]-M, bins=bins_r)
     plt.hist(Er, bins=bins_r)
+    plt.xlabel("Energy (keV)")
 
-    r_rho_C = (rho_VS+rho_H)/rho_0
-
-    print(r_rho_C)
 
     plt.figure()
-    plt.plot(bins_r[:-1], (hist_S_r + hist_H_r)/hist_0_r - r_rho_C)
+    plt.plot(bins_r[:-1], (hist_S_r + hist_H_r)/hist_0_r - r_rho)
+    plt.xlabel("Energy (keV)")
     plt.show()
