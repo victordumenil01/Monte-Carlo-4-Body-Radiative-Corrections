@@ -29,7 +29,6 @@ if __name__ == "__main__":
     betatype = result['initial']['decay_type']
     if betatype == "beta+":
         Z = - Z
-    print('mi :', mi)
     Delta = end_point(mi, mf, betatype)*me
     print('Delta = ', Delta, 'keV')
 

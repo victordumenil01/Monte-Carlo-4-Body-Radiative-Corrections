@@ -2,7 +2,7 @@
 # MC_Sampling.py — version optimisée
 #################################################
 import numpy as np
-from scipy import integrate
+from scipy import integrate # type: ignore
 import os
 import matplotlib.pyplot as plt
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
@@ -11,7 +11,7 @@ import warnings
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 from Constants import *
-from SpectralFunction import *
+from SpectralFunction import * # type: ignore
 
 # ─────────────────────────────────────────────
 # Fonctions de bas niveau (inchangées, vectorisées)
@@ -363,6 +363,8 @@ def _sample_chunk_hard(n_chunk, Delta, CS, Lambda, MF, MGT, Z, R, M, wmax,
     rng = np.random.default_rng()
     E_list, n1_list, n2_list, ng_list = [], [], [], []
     nSuccess = 0
+    sum_w      = 0.0   # accumulateur pour <w> = (1/n) * sum(w_i)
+    n_w        = 0     # nombre total de poids évalués (points valides E1>0)
 
     while nSuccess < n_chunk:
         u = rng.random((8, batch_size))
@@ -408,6 +410,10 @@ def _sample_chunk_hard(n_chunk, Delta, CS, Lambda, MF, MGT, Z, R, M, wmax,
         mBR_val = MBR(E1_v, E2_v, K_v, p12, p1k, p2k, Lambda, MF, MGT, M, Z, R)
         weights = K_v * beta * E1_v * E2_v * mBR_val / g_calc / (2**13 * np.pi**8 * M**2)
 
+        # Accumule les poids pour le calcul de l'efficacité
+        sum_w += np.sum(weights)
+        n_w   += len(weights)
+
         accept = rng.random(len(E2_v)) < weights / wmax
         n_acc  = np.count_nonzero(accept)
         if n_acc == 0:
@@ -422,11 +428,15 @@ def _sample_chunk_hard(n_chunk, Delta, CS, Lambda, MF, MGT, Z, R, M, wmax,
         ng_list.append(ng[:, idx].T)
         nSuccess += need
 
+    # E_H = 100 * <w> / w_max  avec <w> = (1/n) * sum(w_i)
+    efficiency_H = 100.0 * (sum_w / n_w) / wmax
+
     return (
         np.vstack(E_list),
         np.vstack(n1_list),
         np.vstack(n2_list),
         np.vstack(ng_list),
+        efficiency_H,
     )
 
 
@@ -441,6 +451,10 @@ def sampleHard(n, Delta, CS, Lambda, MF, MGT, Z, R, M, wmax, num_threads):
     n1_sampled = np.vstack([r[1] for r in results])[:n]
     n2_sampled = np.vstack([r[2] for r in results])[:n]
     ng_sampled = np.vstack([r[3] for r in results])[:n]
+
+    # Moyenne pondérée de l'efficacité sur tous les chunks
+    eff_H = np.mean([r[4] for r in results])
+    print(f'[Hard] Efficiency H: {eff_H:.4f} %')
 
     return E_sampled, n1_sampled, n2_sampled, ng_sampled
 
@@ -473,8 +487,8 @@ def sampleEvents(A, Z, Delta, mi, MF, MGT, nTotal):
 
     PH      = rho_H / (rho0VS + rho_H)
     r_rho   = 100 * (rho_VS + rho_H) / rho_0
-    print(f"PH    : {PH:.6f}")
-    print(f"r_rho : {r_rho:.4f} %")
+    print(f"PH          : {PH:.6f}")
+    print(f"r_rho       : {r_rho:.4f} %")
 
     nS = int(np.sum(np.random.uniform(size=nTotal) > PH))
     nH = nTotal - nS
@@ -501,8 +515,8 @@ def sampleEvents(A, Z, Delta, mi, MF, MGT, nTotal):
     print("Done")
 
     # ── Figures ──
-    bins   = np.linspace(me, Delta, 50)
-    bins_r = np.linspace(0, Er_max, 50)
+    bins   = np.linspace(me, Delta, 80)
+    bins_r = np.linspace(0, Er_max, 80)
 
     plt.figure()
     plt.hist(E2_c_0[:, 0], bins=bins)
@@ -536,6 +550,6 @@ def sampleEvents(A, Z, Delta, mi, MF, MGT, nTotal):
 
 
     plt.figure()
-    plt.plot(bins_r[:-1], (hist_S_r + hist_H_r)/hist_0_r )
+    plt.plot(bins_r[:-1], (hist_S_r + hist_H_r)/hist_0_r - r_rho)
     plt.xlabel("Energy (keV)")
     plt.show()
