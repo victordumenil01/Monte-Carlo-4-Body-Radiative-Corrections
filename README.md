@@ -1,4 +1,5 @@
 # Monte Carlo 4-Body Radiative Corrections
+[Glück 1997]{https://www.sciencedirect.com/science/article/pii/S0010465596001683}
 
 ## Installation
 
@@ -6,7 +7,7 @@ Clone the repository :
 
 git clone https://github.com/victordumenil01/Monte-Carlo-4-Body-Radiative-Corrections-.git
 
-## Utilisation
+## Usage
 
 python3 MC4BRC.py 
 ```python
@@ -21,7 +22,7 @@ Enter Gamow-Teller matrix element MGT: 6
 Enter number of events nTotal: 200000
 ```
 
-## Exemple de sortie
+## Output example
 ```python
 [TreeLevel] Efficiency: 0.4417
 PH          : 0.029667
@@ -33,11 +34,14 @@ Done
 Execution time : 31.168557166005485 secondes
 ```
 
-## Dépendances
+## Dependancies
 
 - numpy
 - matplotlib
+- scipy
+- matplotlib.pyplot
+- concurrent.futures
 
-## Auteur
+## Autor
 
 DUMENIL Victor

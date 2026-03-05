@@ -1,12 +1,12 @@
 #################################################
 # MC4BRC.py file (main)
 #################################################
+import time
 
 from MC_Sampling import * # type: ignore
 from NDB import * # type: ignore
 from Constants import * # type: ignore
 from SpectralFunction import * # type: ignore
-import time
 
 if __name__ == "__main__":
     A = int(input("Enter mass number A: "))

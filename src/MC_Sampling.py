@@ -6,7 +6,6 @@ from scipy import integrate # type: ignore
 import os
 import matplotlib.pyplot as plt
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
-from functools import lru_cache
 import warnings
 warnings.filterwarnings("ignore", category=RuntimeWarning)
 
