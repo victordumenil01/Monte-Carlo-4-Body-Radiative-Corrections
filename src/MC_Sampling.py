@@ -551,4 +551,41 @@ def sampleEvents(A, Z, Delta, mi, MF, MGT, nTotal):
     plt.figure()
     plt.plot(bins_r[:-1], (hist_S_r + hist_H_r)/hist_0_r - r_rho)
     plt.xlabel("Energy (keV)")
+
+     # ── Sauvegarde des histogrammes ──
+    # Colonnes : centre_bin | valeurs...
+    # Spectre électron (counts bruts)
+    np.savetxt("hist/hist_electron_spectrum.txt",
+               np.column_stack([bins[:-1], hist_0, hist_S, hist_H, hist_H_sum]),
+               header="E2_bin_center  hist_tree  hist_soft  hist_hard  hist_hard_sum",
+               fmt="%.6e")
+
+    # Rapport aux corrections radiatives
+    sirlin = 1 + ALPHA / (2 * np.pi) * sirlin_g(bins[:-1] / me, Delta / me)
+    np.savetxt("hist/hist_radiative_ratio.txt",
+               np.column_stack([bins[:-1],
+                                (hist_S + hist_H)     / hist_0,
+                                (hist_S + hist_H_sum) / hist_0,
+                                sirlin]),
+               header="E2_bin_center  ratio_distinguishable  ratio_indistinguishable  sirlin",
+               fmt="%.6e")
+
+    # Spectre de recul (counts bruts)
+    np.savetxt("hist/hist_recoil_spectrum.txt",
+               np.column_stack([bins_r[:-1], hist_0_r, hist_S_r, hist_H_r]),
+               header="Er_bin_center  hist_tree  hist_soft  hist_hard",
+               fmt="%.6e")
+
+    # Résidu de recul
+    np.savetxt("hist/hist_recoil_residual.txt",
+               np.column_stack([bins_r[:-1], (hist_S_r + hist_H_r) / hist_0_r - r_rho]),
+               header="Er_bin_center  residual",
+               fmt="%.6e")
+
+    print("Histogrammes sauvegardés dans :")
+    print("  /hist/hist_electron_spectrum.txt")
+    print("  /hist/hist_radiative_ratio.txt")
+    print("  /hist/hist_recoil_spectrum.txt")
+    print("  /hist/hist_recoil_residual.txt")
+
     plt.show()

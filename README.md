@@ -1,5 +1,5 @@
 # Monte Carlo 4-Body Radiative Corrections
-[Glück 1997]{https://www.sciencedirect.com/science/article/pii/S0010465596001683}
+[Glück 1997](https://www.sciencedirect.com/science/article/pii/S0010465596001683)
 
 ## Installation
 
