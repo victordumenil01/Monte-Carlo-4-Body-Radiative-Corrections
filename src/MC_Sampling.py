@@ -463,7 +463,7 @@ def sampleHard(n, Delta, CS, Lambda, MF, MGT, Z, R, M, wmax, num_threads):
 # ─────────────────────────────────────────────
 
 def sampleEvents(A, Z, Delta, mi, MF, MGT, nTotal):
-    R         = r0 * A**0.33 / NATLENGTH
+    R         = r0 * A**(1/3) / NATLENGTH
     M         = mi
     n_threads = os.cpu_count()
 
