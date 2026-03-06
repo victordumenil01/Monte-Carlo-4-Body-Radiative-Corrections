@@ -8,9 +8,10 @@ Clone the repository :
 git clone https://github.com/victordumenil01/Monte-Carlo-4-Body-Radiative-Corrections-.git
 
 ## Usage
-
-python3 MC4BRC.py 
+### Option 1 (Unitary test)
 ```python
+python3 MC4BRC.py 
+
 Enter mass number A: 6
 Enter atomic number Z: 2
 Initial nucleus : 6He
@@ -20,6 +21,17 @@ Delta =  4015.140655197147 keV
 Enter Fermi matrix element MF: 0
 Enter Gamow-Teller matrix element MGT: 6
 Enter number of events nTotal: 200000
+```
+
+### Option 2
+```python
+python3 MC4BRC.py A Z Ex MF MGT N
+python3 MC4BRC.py 6 2 0 0 6 10000
+```
+
+### Option 3 (with input file)
+```python
+python3 MC4BRC.py input.txt
 ```
 
 ## Output example
