@@ -21,7 +21,7 @@ def w0(E2, Delta, Lambda, MF, MGT, Z, R):
     E10 = Delta - E2
     beta = beta_E(E2)
     xi, _ = xi_a(Lambda, MF, MGT)
-    return (Gv**2 * xi * beta * E10**2 * E2**2 * fermi_function(E2, Z, R)) / (2 * np.pi**3)
+    return (Gv**2 * xi * beta * E10**2 * E2**2 * fermi_function(E2/me, Z, R)) / (2 * np.pi**3)
 
 
 def wVS(E2, Delta, CS, Lambda, MF, MGT, Z, R):
