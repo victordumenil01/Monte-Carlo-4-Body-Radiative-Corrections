@@ -12,10 +12,8 @@ warnings.filterwarnings("ignore", category=RuntimeWarning)
 from Constants import *
 from SpectralFunction import * # type: ignore
 
-# ─────────────────────────────────────────────
-# Fonctions de bas niveau (inchangées, vectorisées)
-# ─────────────────────────────────────────────
 
+#################################################
 def w0(E2, Delta, Lambda, MF, MGT, Z, R):
     """Densité spectrale à l'arbre (Eq. 5.19 CPC 101 223)."""
     E10 = Delta - E2
@@ -32,12 +30,8 @@ def wVS(E2, Delta, CS, Lambda, MF, MGT, Z, R):
         zVS(E2, Delta, CS) - (ALPHA * N / np.pi) * (1 - beta**2) / beta
     )
 
-
-# ─────────────────────────────────────────────
-# Intégrales rho (utilise np.linspace une seule fois)
-# ─────────────────────────────────────────────
-
-def _make_E2_grid(Delta, n=200):
+#################################################
+def _make_E2_grid(Delta, n=1000):
     return np.linspace(me, Delta, n)
 
 
@@ -51,10 +45,9 @@ def rhoVS(Delta, CS, Lambda, MF, MGT, Z, R):
     return integrate.simpson(np.nan_to_num(wVS(E2, Delta, CS, Lambda, MF, MGT, Z, R)), x=E2)
 
 
-# ─────────────────────────────────────────────
-# Fonctions cinématiques — toutes vectorisées
-# ─────────────────────────────────────────────
-
+#################################################
+# Bremsstrahlung
+#################################################
 def P2(K, p2k, E2):
     return 1 / K**2 + me**2 / p2k**2 - 2 * E2 / K / p2k
 
@@ -81,19 +74,16 @@ def MBR(E1, E2, K, p12, p1k, p2k, Lambda, MF, MGT, M, Z, R):
         * fermi_function(E2 / me, Z, R)
     )
 
-
-# ─────────────────────────────────────────────
-# rho_H par Monte-Carlo (version vectorisée — un seul appel)
-# ─────────────────────────────────────────────
-
+#################################################
+# rho_H by Monte-Carlo 
+#################################################
 def MC_rho_H(nH, Delta, CS, Lambda, MF, MGT, Z, R, M):
     """
-    Calcule rho_H par intégration Monte-Carlo.
-    Entièrement vectorisé : pas de boucle Python.
+    Calculate rho_H by Monte-Carlo integration
     """
     Vg = -32 * np.pi**3 * (Delta - me) * np.log(CS)
 
-    rng = np.random.default_rng()          # générateur moderne, plus rapide
+    rng = np.random.default_rng()          
     u = rng.random((8, nH))
     u1, u2, u3, u4, u5, u6, u7, u8 = u
 
@@ -126,7 +116,6 @@ def MC_rho_H(nH, Delta, CS, Lambda, MF, MGT, Z, R, M):
     n_perp = n2pr * np.cos(phig) + n2prpr * np.sin(phig)
     ng     = n2 * cg + n_perp * sg
 
-    # produits scalaires via einsum (évite les boucles)
     p2k = E2 * K - beta * E2 * K * cg
     p1k = E1 * K * np.einsum('ij,ij->j', n1, ng)
     p12 = beta * E1 * E2 * np.einsum('ij,ij->j', n1, n2)
@@ -146,10 +135,9 @@ def MC_rho_H(nH, Delta, CS, Lambda, MF, MGT, Z, R, M):
     return rho_H, E_H, w_max
 
 
-# ─────────────────────────────────────────────
-# Matrices d'amplitude
-# ─────────────────────────────────────────────
-
+#################################################
+# Virtual soft part
+#################################################
 def M0(E2, Delta, Lambda, MF, MGT, M, c, Z, R):
     E10  = Delta - E2
     beta = beta_E(E2)
@@ -160,7 +148,6 @@ def M0(E2, Delta, Lambda, MF, MGT, M, c, Z, R):
         * fermi_function(E2 / me, Z, R)
     )
 
-
 def Mtilde(E2, Delta, Lambda, MF, MGT, M):
     E10  = Delta - E2
     beta = beta_E(E2)
@@ -168,20 +155,17 @@ def Mtilde(E2, Delta, Lambda, MF, MGT, M):
     xi, a = xi_a(Lambda, MF, MGT)
     return -ALPHA / np.pi * 16 * Gv**2 * (1 - beta**2) / beta * N * M**2 * E10 * E2 * xi
 
-
 def MVS(E2, Delta, CS, Lambda, MF, MGT, M, c, Z, R):
     M_0     = M0(E2, Delta, Lambda, MF, MGT, M, c, Z, R)
     M_tilde = Mtilde(E2, Delta, Lambda, MF, MGT, M)
     z_VS    = zVS(E2, Delta, CS)
     return (z_VS * M_0 + M_tilde) * fermi_function(E2 / me, Z, R)
 
-
 def W0(E2, Delta, Lambda, MF, MGT, M, c, Z, R):
     E10  = Delta - E2
     beta = beta_E(E2)
     M_0  = M0(E2, Delta, Lambda, MF, MGT, M, c, Z, R)
     return beta * E10 * E2 * M_0
-
 
 def W0VS(E2, Delta, CS, Lambda, MF, MGT, M, c, Z, R):
     E10  = Delta - E2
@@ -190,23 +174,7 @@ def W0VS(E2, Delta, CS, Lambda, MF, MGT, M, c, Z, R):
     M_VS = MVS(E2, Delta, CS, Lambda, MF, MGT, M, c, Z, R)
     return beta * E10 * E2 * (M_0 + M_VS)
 
-
-# ─────────────────────────────────────────────
-# Helpers : génération vectorielle de directions
-# ─────────────────────────────────────────────
-
-def _random_directions(n, c_col, phi_col=None):
-    """
-    Retourne n vecteurs unitaires 3D.
-    c_col : cosinus polaires (n,)
-    phi_col : angles azimutaux (n,) — tirés aléatoirement si None
-    """
-    if phi_col is None:
-        phi_col = np.random.uniform(0, 2 * np.pi, n)
-    s = np.sqrt(1 - c_col**2)
-    return np.stack((s * np.cos(phi_col), s * np.sin(phi_col), c_col))  # (3, n)
-
-
+#################################################
 def _build_frame(c2, phi2, n):
     """Construit la triade (n2, n2pr, n2prpr) à partir de c2, phi2."""
     s2     = np.sqrt(1 - c2**2)
@@ -216,10 +184,9 @@ def _build_frame(c2, phi2, n):
     return n2, n2pr, n2prpr
 
 
-# ─────────────────────────────────────────────
-# Échantillonnage niveau-arbre
-# ─────────────────────────────────────────────
-
+#################################################
+# Tree level sampling
+#################################################
 def _sample_chunk(n_chunk, me, Delta, Lambda, MF, MGT, Z, R, M, w0_max):
     rng = np.random.default_rng()
     samples = []
@@ -234,7 +201,6 @@ def _sample_chunk(n_chunk, me, Delta, Lambda, MF, MGT, Z, R, M, w0_max):
             samples.append((e2, c))
 
     return np.array(samples), tries
-
 
 def sampleTreeLevel(n, Delta, Lambda, MF, MGT, Z, R, M, num_threads):
     E2_grid = _make_E2_grid(Delta)
@@ -252,7 +218,6 @@ def sampleTreeLevel(n, Delta, Lambda, MF, MGT, Z, R, M, num_threads):
     total_tries  = sum(r[1] for r in results)
     print(f'[TreeLevel] Efficiency: {n / total_tries:.4f}')
 
-    # Vecteurs de direction — entièrement vectorisés
     c2   = 2 * np.random.uniform(size=n) - 1
     phi2 = np.random.uniform(0, 2 * np.pi, n)
     phi1 = np.random.uniform(0, 2 * np.pi, n)
@@ -264,11 +229,9 @@ def sampleTreeLevel(n, Delta, Lambda, MF, MGT, Z, R, M, num_threads):
 
     return E2_c_sampled, n1, n2
 
-
-# ─────────────────────────────────────────────
-# Échantillonnage soft
-# ─────────────────────────────────────────────
-
+#################################################
+# Virtual soft sampling
+#################################################
 def _sample_chunk_soft(n_chunk, me, Delta, CS, Lambda, MF, MGT, Z, R, M, w0vs_max):
     rng     = np.random.default_rng()
     samples = []
@@ -312,11 +275,9 @@ def sampleSoft(n, Delta, CS, Lambda, MF, MGT, Z, R, M, num_threads):
 
     return E2_c_sampled, n1, n2
 
-
-# ─────────────────────────────────────────────
-# Décroissance à 3 corps
-# ─────────────────────────────────────────────
-
+#################################################
+# 3 body decay kinematics
+#################################################
 def threeBodyDecay(fourMom1, m1, m2, m3, dir2, Q):
     """
     Calcule les quadri-impulsions des particules 2 et 3.
@@ -348,11 +309,9 @@ def threeBodyDecay(fourMom1, m1, m2, m3, dir2, Q):
 
     return fourMomentum2, fourMomentum3
 
-
-# ─────────────────────────────────────────────
-# Échantillonnage hard (rejection sampling vectorisé)
-# ─────────────────────────────────────────────
-
+#################################################
+# Hard sampling
+#################################################
 def _sample_chunk_hard(n_chunk, Delta, CS, Lambda, MF, MGT, Z, R, M, wmax,
                        batch_size=4096):
     """
@@ -362,8 +321,8 @@ def _sample_chunk_hard(n_chunk, Delta, CS, Lambda, MF, MGT, Z, R, M, wmax,
     rng = np.random.default_rng()
     E_list, n1_list, n2_list, ng_list = [], [], [], []
     nSuccess = 0
-    sum_w      = 0.0   # accumulateur pour <w> = (1/n) * sum(w_i)
-    n_w        = 0     # nombre total de poids évalués (points valides E1>0)
+    sum_w      = 0.0   
+    n_w        = 0     
 
     while nSuccess < n_chunk:
         u = rng.random((8, batch_size))
@@ -379,7 +338,6 @@ def _sample_chunk_hard(n_chunk, Delta, CS, Lambda, MF, MGT, Z, R, M, wmax,
         if not np.any(valid):
             continue
 
-        # Restreint aux candidats valides
         E1_v = E1[valid]; E2_v = E2[valid]; K_v = K[valid]
         u3_v = u3[valid]; u4_v = u4[valid]; u5_v = u5[valid]
         u6_v = u6[valid]; u7_v = u7[valid]; u8_v = u8[valid]
@@ -409,7 +367,6 @@ def _sample_chunk_hard(n_chunk, Delta, CS, Lambda, MF, MGT, Z, R, M, wmax,
         mBR_val = MBR(E1_v, E2_v, K_v, p12, p1k, p2k, Lambda, MF, MGT, M, Z, R)
         weights = K_v * beta * E1_v * E2_v * mBR_val / g_calc / (2**13 * np.pi**8 * M**2)
 
-        # Accumule les poids pour le calcul de l'efficacité
         sum_w += np.sum(weights)
         n_w   += len(weights)
 
@@ -451,17 +408,15 @@ def sampleHard(n, Delta, CS, Lambda, MF, MGT, Z, R, M, wmax, num_threads):
     n2_sampled = np.vstack([r[2] for r in results])[:n]
     ng_sampled = np.vstack([r[3] for r in results])[:n]
 
-    # Moyenne pondérée de l'efficacité sur tous les chunks
+    # Efficiency
     eff_H = np.mean([r[4] for r in results])
     print(f'[Hard] Efficiency H: {eff_H:.4f} %')
 
     return E_sampled, n1_sampled, n2_sampled, ng_sampled
 
-
-# ─────────────────────────────────────────────
-# Fonction principale
-# ─────────────────────────────────────────────
-
+#################################################
+# Main sampling function
+#################################################
 def sampleEvents(A, Z, Delta, mi, MF, MGT, nTotal):
     R         = r0 * A**(1/3) / NATLENGTH
     M         = mi
@@ -471,14 +426,14 @@ def sampleEvents(A, Z, Delta, mi, MF, MGT, nTotal):
     Er_max = (Q**2 + 2 * Q * me) / (2 * M)
     E0     = Delta
 
-    # ── Niveau arbre ──
+    # Tree level 
     E2_c_0, n1_0, n2_0 = sampleTreeLevel(nTotal, E0, Lambda, MF, MGT, Z, R, M, n_threads)
 
     pE_0        = np.sqrt(E2_c_0[:, 0]**2 - me**2) * n2_0
     fourMom2_0  = np.vstack((E2_c_0[:, 0], pE_0))
     fourMom1_0, fourMom3_0 = threeBodyDecay(fourMom2_0, me, 0, M, n1_0, Q)
 
-    # ── Calcul des probabilités ──
+    # Probabilities and ratios
     rho_H, _, wmax = MC_rho_H(nTotal, Delta, CS, Lambda, MF, MGT, Z, R, M)
     rho_0          = rho0(Delta, Lambda, MF, MGT, Z, R)
     rho_VS         = rhoVS(Delta, CS, Lambda, MF, MGT, Z, R)
@@ -493,7 +448,7 @@ def sampleEvents(A, Z, Delta, mi, MF, MGT, nTotal):
     nH = nTotal - nS
     print(f"nS : {nS}   nH : {nH}   nS/nTotal : {nS / nTotal:.4f}")
 
-    # ── Soft & Hard en parallèle ──
+    # Soft & Hard
     with ProcessPoolExecutor() as ex:
         fut_S = ex.submit(sampleSoft, nS, E0, CS, Lambda, MF, MGT, Z, R, M, n_threads)
         fut_H = ex.submit(sampleHard, nH, Delta, CS, Lambda, MF, MGT, Z, R, M, wmax, n_threads)
@@ -504,7 +459,7 @@ def sampleEvents(A, Z, Delta, mi, MF, MGT, nTotal):
     fourMom2_S = np.vstack((E2_c_S[:, 0], pE_S))
     fourMom1_S, fourMom3_S = threeBodyDecay(fourMom2_S, me, 0, M, n1_S, Q)
 
-    # ── Cinématique hard ──
+    # Hard kinematics
     p1_H = E_H[:, 0, None].T * n1_H.T          # (3, nH)
     p2_H = np.sqrt(E_H[:, 1]**2 - me**2)[:, None].T * n2_H.T
     pg_H = E_H[:, 2, None].T * ng_H.T
@@ -552,15 +507,14 @@ def sampleEvents(A, Z, Delta, mi, MF, MGT, nTotal):
     plt.plot(bins_r[:-1], (hist_S_r + hist_H_r)/hist_0_r - r_rho)
     plt.xlabel("Energy (keV)")
 
-     # ── Sauvegarde des histogrammes ──
-    # Colonnes : centre_bin | valeurs...
-    # Spectre électron (counts bruts)
+    # Save histograms to text files
+    # Electron spectrum (counts bruts)
     np.savetxt("hist/hist_electron_spectrum.txt",
                np.column_stack([bins[:-1], hist_0, hist_S, hist_H, hist_H_sum]),
                header="E2_bin_center  hist_tree  hist_soft  hist_hard  hist_hard_sum",
                fmt="%.6e")
 
-    # Rapport aux corrections radiatives
+    # Ratio of radiative corrections
     sirlin = 1 + ALPHA / (2 * np.pi) * sirlin_g(bins[:-1] / me, Delta / me)
     np.savetxt("hist/hist_radiative_ratio.txt",
                np.column_stack([bins[:-1],
@@ -570,19 +524,19 @@ def sampleEvents(A, Z, Delta, mi, MF, MGT, nTotal):
                header="E2_bin_center  ratio_distinguishable  ratio_indistinguishable  sirlin",
                fmt="%.6e")
 
-    # Spectre de recul (counts bruts)
+    # Recoil spectrum (counts bruts)
     np.savetxt("hist/hist_recoil_spectrum.txt",
                np.column_stack([bins_r[:-1], hist_0_r, hist_S_r, hist_H_r]),
                header="Er_bin_center  hist_tree  hist_soft  hist_hard",
                fmt="%.6e")
 
-    # Résidu de recul
+    # Residual of recoil spectrum
     np.savetxt("hist/hist_recoil_residual.txt",
                np.column_stack([bins_r[:-1], (hist_S_r + hist_H_r) / hist_0_r - r_rho]),
                header="Er_bin_center  residual",
                fmt="%.6e")
 
-    print("Histogrammes sauvegardés dans :")
+    print("Histograms saved in :")
     print("  /hist/hist_electron_spectrum.txt")
     print("  /hist/hist_radiative_ratio.txt")
     print("  /hist/hist_recoil_spectrum.txt")

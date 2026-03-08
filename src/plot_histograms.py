@@ -8,10 +8,9 @@ import matplotlib.pyplot as plt
 import os
 import sys
 
-# ─────────────────────────────────────────────
-# Chemins des fichiers
-# ─────────────────────────────────────────────
-
+#################################################
+# Path to files
+#################################################
 FILES = {
     "electron"  : "hist/hist_electron_spectrum.txt",
     "ratio"     : "hist/hist_radiative_ratio.txt",
@@ -29,10 +28,9 @@ def check_files():
         sys.exit(1)
 
 
-# ─────────────────────────────────────────────
+#################################################
 # Chargement
-# ─────────────────────────────────────────────
-
+#################################################
 def load_all():
     data = {}
     for key, path in FILES.items():
@@ -41,10 +39,9 @@ def load_all():
     return data
 
 
-# ─────────────────────────────────────────────
+#################################################
 # Figures
-# ─────────────────────────────────────────────
-
+#################################################
 def plot_electron_spectrum(d):
     """
     hist_electron_spectrum.txt
@@ -62,9 +59,9 @@ def plot_electron_spectrum(d):
     ax.bar(bins, tree,  width=width, label='Tree',      align='edge')
     ax.bar(bins, soft,  width=width, label='Soft',      align='edge')
     ax.bar(bins, hard,  width=width, label='Hard',      align='edge')
-    ax.set_xlabel("E₂ (keV)")
+    ax.set_xlabel("Energy (keV)")
     ax.set_ylabel("Counts")
-    ax.set_title("Spectre électron")
+    ax.set_title("Electron spectrum")
     ax.legend()
     fig.tight_layout()
     return fig
@@ -84,9 +81,8 @@ def plot_radiative_ratio(d):
     ax.plot(bins, ratio_dist,  label='Photon détectable')
     ax.plot(bins, ratio_indet, label='Photon non détectable')
     ax.plot(bins, sirlin,      label='Sirlin')
-    ax.set_xlabel("E₂ (keV)")
+    ax.set_xlabel("Energy (keV)")
     ax.set_ylabel("Ratio")
-    ax.set_title("Rapport aux corrections radiatives")
     ax.legend()
     fig.tight_layout()
     return fig
@@ -108,9 +104,9 @@ def plot_recoil_spectrum(d):
     ax.bar(bins, tree, width=width, label='Tree', align='edge')
     ax.bar(bins, soft, width=width, label='Soft', align='edge')
     ax.bar(bins, hard, width=width, label='Hard', align='edge')
-    ax.set_xlabel("Énergie de recul (keV)")
+    ax.set_xlabel("Energy (keV)")
     ax.set_ylabel("Counts")
-    ax.set_title("Spectre de recul")
+    ax.set_title("Recoil spectrum")
     ax.legend()
     fig.tight_layout()
     return fig
@@ -126,17 +122,15 @@ def plot_recoil_residual(d):
 
     fig, ax = plt.subplots()
     ax.plot(bins, residual)
-    ax.set_xlabel("Énergie de recul (keV)")
-    ax.set_ylabel("Résidu")
-    ax.set_title("Résidu de recul")
+    ax.set_xlabel("Energy (keV)")
+    ax.set_ylabel("Ratio")
     fig.tight_layout()
     return fig
 
 
-# ─────────────────────────────────────────────
+#################################################
 # Main
-# ─────────────────────────────────────────────
-
+#################################################
 if __name__ == "__main__":
     check_files()
     data = load_all()

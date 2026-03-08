@@ -15,3 +15,4 @@ Gv = 1
 Lambda = 1.2754
 CS = 0.001
 r0 = 1.2 # Fermi radius in fm
+dE = 4.4 * 1e-3

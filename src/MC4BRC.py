@@ -21,14 +21,13 @@ def read_config_file(filepath):
     with open(filepath, 'r') as f:
         for line in f:
             line = line.strip()
-            if not line or line.startswith("#"):  # ignore les lignes vides ou commentaires
+            if not line or line.startswith("#"): 
                 continue
             if '=' in line:
                 key, value = line.split('=', 1)
                 key = key.strip()
                 value = value.strip()
 
-                # Essaie de convertir en booléen, int ou float si possible
                 if value.lower() in ['true', 'false']:
                     value = value.lower() == 'true'
                 else:
@@ -38,7 +37,7 @@ def read_config_file(filepath):
                         try:
                             value = float(value)
                         except ValueError:
-                            pass  # reste une chaîne
+                            pass  
 
                 config[key] = value
     return config
