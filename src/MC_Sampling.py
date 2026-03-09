@@ -442,7 +442,7 @@ def sampleEvents(A, Z, Delta, mi, MF, MGT, nTotal):
     PH      = rho_H / (rho0VS + rho_H)
     r_rho   = 100 * (rho_VS + rho_H) / rho_0
     print(f"PH          : {PH:.6f}")
-    print(f"r_rho       : {r_rho:.4f} %")
+    print(f"r_rho       : {r_rho:.6f} %")
 
     nS = int(np.sum(np.random.uniform(size=nTotal) > PH))
     nH = nTotal - nS
@@ -532,7 +532,7 @@ def sampleEvents(A, Z, Delta, mi, MF, MGT, nTotal):
 
     # Residual of recoil spectrum
     np.savetxt("hist/hist_recoil_residual.txt",
-               np.column_stack([bins_r[:-1], (hist_S_r + hist_H_r) / hist_0_r - r_rho]),
+               np.column_stack([bins_r[:-1], (hist_S_r + hist_H_r) / hist_0_r - r_rho/100]),
                header="Er_bin_center  residual",
                fmt="%.6e")
 

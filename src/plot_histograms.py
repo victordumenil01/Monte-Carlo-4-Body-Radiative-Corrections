@@ -8,6 +8,15 @@ import matplotlib.pyplot as plt
 import os
 import sys
 
+from SpectralFunction import *
+from Constants import *
+
+# Glück
+def Glück_6He(r_rho):
+    RC_gluck_6He = np.array([0.141, 0.138, 0.135, 0.132, 0.128, 0.121, 0.115, 0.108, 0.096, 0.082, 0.064, 0.041, 0.009, -0.039, -0.120, -0.336, -0.459, -0.599, -0.819, -1.209]) /100 + 1 - r_rho/100
+    RC_gluck_abs_6He = np.array([99.4, 139.6, 182.4, 230.7, 285, 366.2, 433.5, 496.6, 596.2, 696, 795.5, 895, 994.5, 1093.2, 1187.8, 1293, 1320, 1340, 1360, 1380]) /1000
+
+    return RC_gluck_abs_6He, RC_gluck_6He
 #################################################
 # Path to files
 #################################################
@@ -67,22 +76,31 @@ def plot_electron_spectrum(d):
     return fig
 
 
-def plot_radiative_ratio(d):
+def plot_radiative_ratio(d, electron_data, r_rho):
     """
     hist_radiative_ratio.txt
     Colonnes : E2_bin_center | ratio_distinguishable | ratio_indistinguishable | sirlin
     """
+    bins_energy = electron_data[:, 0]
+
+    E0 = float(bins_energy[-1])
+    E2 = np.linspace(1.01, E0, 1000)
+    Gardner = []
+    for i in E2:
+        Gardner.append(g_gardner(dE, i/me, CS, E0))
+
     bins        = d[:, 0]
     ratio_dist  = d[:, 1]
     ratio_indet = d[:, 2]
     sirlin      = d[:, 3]
 
     fig, ax = plt.subplots()
-    ax.plot(bins, ratio_dist,  label='Photon détectable')
-    ax.plot(bins, ratio_indet, label='Photon non détectable')
-    ax.plot(bins, sirlin,      label='Sirlin')
+    ax.plot(bins, ratio_dist+r_rho/100,  color='tab:blue', label='Distinguishable photon')
+    ax.plot(bins, ratio_indet+r_rho/100, color='tab:orange', label='Indistinguishable photon')
+    ax.plot(bins, sirlin, color='tab:blue', linestyle='dashed', label='Sirlin')
+    ax.plot(E2, Gardner, color='tab:orange', linestyle='dashed', label='Gardner')
     ax.set_xlabel("Energy (keV)")
-    ax.set_ylabel("Ratio")
+    ax.set_ylabel("Radiative correction ratio")
     ax.legend()
     fig.tight_layout()
     return fig
@@ -112,7 +130,7 @@ def plot_recoil_spectrum(d):
     return fig
 
 
-def plot_recoil_residual(d):
+def plot_recoil_residual(d, r_rho):
     """
     hist_recoil_residual.txt
     Colonnes : Er_bin_center | residual
@@ -120,10 +138,14 @@ def plot_recoil_residual(d):
     bins     = d[:, 0]
     residual = d[:, 1]
 
+    RC_gluck_abs_6He, RC_gluck_6He = Glück_6He(r_rho)
+
     fig, ax = plt.subplots()
-    ax.plot(bins, residual)
+    ax.plot(bins, residual + r_rho - r_rho/100, color='tab:blue', label='Residual')
+    ax.plot(RC_gluck_abs_6He, RC_gluck_6He, color='tab:orange', label='Glück')
     ax.set_xlabel("Energy (keV)")
     ax.set_ylabel("Ratio")
+    ax.legend()
     fig.tight_layout()
     return fig
 
@@ -132,12 +154,14 @@ def plot_recoil_residual(d):
 # Main
 #################################################
 if __name__ == "__main__":
+
+    r_rho = 1.094#float(input("Enter the value of r_rho : "))
     check_files()
     data = load_all()
 
     plot_electron_spectrum(data["electron"])
-    plot_radiative_ratio(data["ratio"])
+    plot_radiative_ratio(data["ratio"], data["electron"], r_rho)
     plot_recoil_spectrum(data["recoil"])
-    plot_recoil_residual(data["residual"])
+    plot_recoil_residual(data["residual"], r_rho)
 
     plt.show()

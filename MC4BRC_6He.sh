@@ -13,4 +13,4 @@
 
 cd src/
 
-python3 MC4BRC.py 6 2 0 0 6 50000000
+python3 MC4BRC.py 6 2 0 0 6 10000
