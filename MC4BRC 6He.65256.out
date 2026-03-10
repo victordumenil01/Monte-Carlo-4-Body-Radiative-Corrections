@@ -1,0 +1,20 @@
+==========================================
+SLURM_JOB_ID = 65256
+SLURM_NODELIST = ubuntu22
+==========================================
+Initial nucleus : 6He
+Final nucleus: 6Li
+Delta =  4015.140655197147 keV
+[TreeLevel] Efficiency: 0.4418
+PH          : 0.029505
+r_rho       : 1.097941 %
+nS : 97048122   nH : 2951878   nS/nTotal : 0.9705
+[Hard] Efficiency H: 24.3889 %
+[Soft] Efficiency: 0.4417
+Done
+Histograms saved in :
+  /hist/hist_electron_spectrum.txt
+  /hist/hist_radiative_ratio.txt
+  /hist/hist_recoil_spectrum.txt
+  /hist/hist_recoil_residual.txt
+Execution time : 21044.710813343525 secondes
