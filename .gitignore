@@ -1,3 +1,5 @@
 *env*
 *pycache*
 *.DS_Store*
+src/prev
+src/hist/*

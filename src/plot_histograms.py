@@ -141,7 +141,7 @@ def plot_recoil_residual(d, r_rho):
     RC_gluck_abs_6He, RC_gluck_6He = Glück_6He(r_rho)
 
     fig, ax = plt.subplots()
-    ax.plot(bins, residual + r_rho - r_rho/100, color='tab:blue', label='Residual')
+    ax.plot(bins, residual, color='tab:blue', label='Residual')
     ax.plot(RC_gluck_abs_6He, RC_gluck_6He, color='tab:orange', label='Glück')
     ax.set_xlabel("Energy (keV)")
     ax.set_ylabel("Ratio")
@@ -155,7 +155,7 @@ def plot_recoil_residual(d, r_rho):
 #################################################
 if __name__ == "__main__":
 
-    r_rho = 1.094#float(input("Enter the value of r_rho : "))
+    r_rho = float(sys.argv[1])
     check_files()
     data = load_all()
 
