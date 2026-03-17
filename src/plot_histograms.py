@@ -73,6 +73,7 @@ def plot_electron_spectrum(d):
     ax.set_title("Electron spectrum")
     ax.legend()
     fig.tight_layout()
+    fig.savefig("hist/hist_electron_spectrum.pdf", dpi=300)
     return fig
 
 
@@ -103,6 +104,7 @@ def plot_radiative_ratio(d, electron_data, r_rho):
     ax.set_ylabel("Radiative correction ratio")
     ax.legend()
     fig.tight_layout()
+    fig.savefig("hist/hist_radiative_ratio.pdf", dpi=300)
     return fig
 
 
@@ -127,6 +129,7 @@ def plot_recoil_spectrum(d):
     ax.set_title("Recoil spectrum")
     ax.legend()
     fig.tight_layout()
+    fig.savefig("hist/hist_recoil_spectrum.pdf", dpi=300)
     return fig
 
 
@@ -141,12 +144,13 @@ def plot_recoil_residual(d, r_rho):
     RC_gluck_abs_6He, RC_gluck_6He = Glück_6He(r_rho)
 
     fig, ax = plt.subplots()
-    ax.plot(bins, residual, color='tab:blue', label='Residual')
-    ax.plot(RC_gluck_abs_6He, RC_gluck_6He, color='tab:orange', label='Glück')
+    ax.plot(bins, residual, color='tab:blue', label='Recoil')
+    ax.plot(RC_gluck_abs_6He, RC_gluck_6He, color='tab:orange', label='F.Glück 1998')
     ax.set_xlabel("Energy (keV)")
     ax.set_ylabel("Ratio")
     ax.legend()
     fig.tight_layout()
+    fig.savefig("hist/hist_recoil_residual.pdf", dpi=300)
     return fig
 
 

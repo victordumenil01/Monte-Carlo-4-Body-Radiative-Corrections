@@ -46,6 +46,12 @@ Done
 Execution time : 31.168557166005485 secondes
 ```
 
+## Plot
+```python
+python3 plot_histograms.py [r_rho]
+python3 plot_histograms.py 1.1097
+```
+
 ## Dependancies
 
 - numpy
@@ -53,7 +59,3 @@ Execution time : 31.168557166005485 secondes
 - scipy
 - matplotlib.pyplot
 - concurrent.futures
-
-## Autor
-
-DUMENIL Victor
