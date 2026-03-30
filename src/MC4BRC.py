@@ -130,6 +130,7 @@ if __name__ == "__main__":
         MF = float(sys.argv[4])
         MGT = float(sys.argv[5])
         nTotal = int(sys.argv[6])
+        input_data = sys.argv[7]
 
     start = time.perf_counter()
     sampleEvents(A, Z, Delta, mi, MF, MGT, nTotal, input_data)
