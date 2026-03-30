@@ -103,7 +103,7 @@ if __name__ == "__main__":
         MF = config.get('MF')
         MGT = config.get('MGT')
         nTotal = config.get('nTotal')
-    elif len(sys.argv) == 7:
+    elif len(sys.argv) == 8:
         A = int(sys.argv[1])
         Z = int(sys.argv[2])
         N = A - Z
@@ -130,7 +130,7 @@ if __name__ == "__main__":
         MF = float(sys.argv[4])
         MGT = float(sys.argv[5])
         nTotal = int(sys.argv[6])
-        input_data = sys.argv[7]
+        input_data = str(sys.argv[7])
 
     start = time.perf_counter()
     sampleEvents(A, Z, Delta, mi, MF, MGT, nTotal, input_data)
