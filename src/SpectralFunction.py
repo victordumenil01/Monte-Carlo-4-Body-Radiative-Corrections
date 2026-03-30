@@ -4,6 +4,7 @@
 import numpy as np
 from scipy.special import spence, gamma # type: ignore
 from scipy import integrate # type: ignore
+from scipy.interpolate import interp1d # type: ignore
 
 from Constants import *
 
@@ -284,3 +285,48 @@ def g_gardner(dE, E2, l, delta):
     delta : Q-value (keV)
     """
     return 1.0 + (ALPHA / (2.0 * np.pi)) * (_gb(dE, E2, l, delta) + _gvv(E2, l)) 
+
+
+#─────────────────────────────────────────────
+def build_spectrum_interpolator(file_path, Z, R):
+    """
+    Construit et retourne l'interpolateur de la fonction spectrale.
+    À appeler UNE SEULE FOIS au démarrage, puis passer le callable
+    retourné aux fonctions de sampling.
+
+    Retourne
+    --------
+    f : callable
+        f(E) évalue la fonction spectrale normalisée à l'énergie E
+        (E en unités de me c^2). Vectorisée, retourne 0 hors domaine.
+    """
+    # --- Lecture ---
+    data = np.loadtxt(file_path, skiprows=1)
+
+    energy      = data[:, 0] / me + 1
+    corrections = data[:, 1]
+    C           = data[:, 2]
+
+    # --- Quantités physiques ---
+    E0 = max(energy)
+    p  = np.sqrt(energy**2 - 1)
+
+    weight = p * energy * (E0 - energy)**2 * fermi_function(energy, Z, R)
+
+    # --- Normalisation globale ---
+    num = integrate.simpson(weight * C, x=energy)
+    den = integrate.simpson(weight,     x=energy)
+
+    C_norm  = C / (num / den)
+    product = corrections * C_norm
+
+    # --- Interpolateur (construit une seule fois) ---
+    interp_func = interp1d(
+        energy, product,
+        kind='cubic',
+        bounds_error=False,
+        fill_value=0.0
+    )
+
+    # Retourne directement le callable — pas d'évaluation ici
+    return interp_func

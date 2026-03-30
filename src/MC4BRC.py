@@ -72,6 +72,7 @@ if __name__ == "__main__":
         MF = float(input("Enter Fermi matrix element MF: "))
         MGT = int(input("Enter Gamow-Teller matrix element MGT: "))
         nTotal = int(input("Enter number of events nTotal: "))
+        input_data = input("Path of the input file (leave blank if not applicable): ")
 
     elif len(sys.argv) == 2:
         config_file = sys.argv[1]
@@ -131,7 +132,7 @@ if __name__ == "__main__":
         nTotal = int(sys.argv[6])
 
     start = time.perf_counter()
-    sampleEvents(A, Z, Delta, mi, MF, MGT, nTotal)
+    sampleEvents(A, Z, Delta, mi, MF, MGT, nTotal, input_data)
     end = time.perf_counter()
 
     print(f"Execution time : {end - start} secondes")

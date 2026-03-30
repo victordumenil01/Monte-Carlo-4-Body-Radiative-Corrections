@@ -14,19 +14,20 @@ from SpectralFunction import * # type: ignore
 
 
 #################################################
-def w0(E2, Delta, Lambda, MF, MGT, Z, R):
+def w0(E2, Delta, Lambda, MF, MGT, Z, R, spectrum_func=None):
     """Densité spectrale à l'arbre (Eq. 5.19 CPC 101 223)."""
     E10 = Delta - E2
     beta = beta_E(E2)
     xi, _ = xi_a(Lambda, MF, MGT)
-    return (Gv**2 * xi * beta * E10**2 * E2**2 * fermi_function(E2/me, Z, R)) / (2 * np.pi**3)
+    sf = fermi_function(E2/me, Z, R) if spectrum_func is None else spectrum_func(E2/me)
+    return (Gv**2 * xi * beta * E10**2 * E2**2 * sf) / (2 * np.pi**3)
+    
 
-
-def wVS(E2, Delta, CS, Lambda, MF, MGT, Z, R):
+def wVS(E2, Delta, CS, Lambda, MF, MGT, Z, R, spectrum_func=None):
     """Densité spectrale avec corrections virtuelles+soft (Eq. 5.20 CPC 101 223)."""
     beta = beta_E(E2)
     N = 0.5 * np.log((1 + beta) / (1 - beta))
-    return w0(E2, Delta, Lambda, MF, MGT, Z, R) * (
+    return w0(E2, Delta, Lambda, MF, MGT, Z, R, spectrum_func) * (
         zVS(E2, Delta, CS) - (ALPHA * N / np.pi) * (1 - beta**2) / beta
     )
 
@@ -35,14 +36,14 @@ def _make_E2_grid(Delta, n=1000):
     return np.linspace(me, Delta, n)
 
 
-def rho0(Delta, Lambda, MF, MGT, Z, R):
+def rho0(Delta, Lambda, MF, MGT, Z, R, spectrum_func=None):
     E2 = _make_E2_grid(Delta)
-    return integrate.simpson(np.nan_to_num(w0(E2, Delta, Lambda, MF, MGT, Z, R)), x=E2)
+    return integrate.simpson(np.nan_to_num(w0(E2, Delta, Lambda, MF, MGT, Z, R, spectrum_func)), x=E2)
 
 
-def rhoVS(Delta, CS, Lambda, MF, MGT, Z, R):
+def rhoVS(Delta, CS, Lambda, MF, MGT, Z, R, spectrum_func=None):
     E2 = _make_E2_grid(Delta)
-    return integrate.simpson(np.nan_to_num(wVS(E2, Delta, CS, Lambda, MF, MGT, Z, R)), x=E2)
+    return integrate.simpson(np.nan_to_num(wVS(E2, Delta, CS, Lambda, MF, MGT, Z, R, spectrum_func)), x=E2)
 
 
 #################################################
@@ -65,19 +66,20 @@ def g(beta, E2, p2k):
     return beta * E2 / (2 * N * p2k)
 
 
-def MBR(E1, E2, K, p12, p1k, p2k, Lambda, MF, MGT, M, Z, R):
+def MBR(E1, E2, K, p12, p1k, p2k, Lambda, MF, MGT, M, Z, R, spectrum_func=None):
     xi, a = xi_a(Lambda, MF, MGT)
     P2_val = P2(K, p2k, E2)
+    sf = fermi_function(E2 / me, Z, R) if spectrum_func is None else spectrum_func(E2 / me)
     return (
         16 * Gv**2 * xi * M**2 * e**2
         * (H0(E1, E2, K, P2_val, p2k) + a * H1(E2, K, P2_val, p12, p1k, p2k))
-        * fermi_function(E2 / me, Z, R)
+        * sf
     )
 
 #################################################
 # rho_H by Monte-Carlo 
 #################################################
-def MC_rho_H(nH, Delta, CS, Lambda, MF, MGT, Z, R, M):
+def MC_rho_H(nH, Delta, CS, Lambda, MF, MGT, Z, R, M, spectrum_func=None):
     """
     Calculate rho_H by Monte-Carlo integration
     """
@@ -121,7 +123,7 @@ def MC_rho_H(nH, Delta, CS, Lambda, MF, MGT, Z, R, M):
     p12 = beta * E1 * E2 * np.einsum('ij,ij->j', n1, n2)
 
     g_calc  = g(beta, E2, p2k)
-    mBR_val = MBR(E1, E2, K, p12, p1k, p2k, Lambda, MF, MGT, M, Z, R)
+    mBR_val = MBR(E1, E2, K, p12, p1k, p2k, Lambda, MF, MGT, M, Z, R, spectrum_func)
 
     weights = (K * beta * E1 * E2 * mBR_val / g_calc) / (2**13 * np.pi**8 * M**2)
 
@@ -138,14 +140,15 @@ def MC_rho_H(nH, Delta, CS, Lambda, MF, MGT, Z, R, M):
 #################################################
 # Virtual soft part
 #################################################
-def M0(E2, Delta, Lambda, MF, MGT, M, c, Z, R):
+def M0(E2, Delta, Lambda, MF, MGT, M, c, Z, R, spectrum_func=None):
     E10  = Delta - E2
     beta = beta_E(E2)
     xi, a = xi_a(Lambda, MF, MGT)
+    sf = fermi_function(E2 / me, Z, R) if spectrum_func is None else spectrum_func(E2 / me)
     return (
         16 * Gv**2 * xi**2 * M**2 * E10 * E2
         * (1 + a * beta * c)
-        * fermi_function(E2 / me, Z, R)
+        * sf
     )
 
 def Mtilde(E2, Delta, Lambda, MF, MGT, M):
@@ -155,23 +158,24 @@ def Mtilde(E2, Delta, Lambda, MF, MGT, M):
     xi, a = xi_a(Lambda, MF, MGT)
     return -ALPHA / np.pi * 16 * Gv**2 * (1 - beta**2) / beta * N * M**2 * E10 * E2 * xi
 
-def MVS(E2, Delta, CS, Lambda, MF, MGT, M, c, Z, R):
-    M_0     = M0(E2, Delta, Lambda, MF, MGT, M, c, Z, R)
+def MVS(E2, Delta, CS, Lambda, MF, MGT, M, c, Z, R, spectrum_func=None):
+    M_0     = M0(E2, Delta, Lambda, MF, MGT, M, c, Z, R, spectrum_func)
     M_tilde = Mtilde(E2, Delta, Lambda, MF, MGT, M)
     z_VS    = zVS(E2, Delta, CS)
-    return (z_VS * M_0 + M_tilde) * fermi_function(E2 / me, Z, R)
+    sf = fermi_function(E2 / me, Z, R) if spectrum_func is None else spectrum_func(E2 / me)
+    return (z_VS * M_0 + M_tilde) * sf
 
-def W0(E2, Delta, Lambda, MF, MGT, M, c, Z, R):
+def W0(E2, Delta, Lambda, MF, MGT, M, c, Z, R, spectrum_func=None):
     E10  = Delta - E2
     beta = beta_E(E2)
-    M_0  = M0(E2, Delta, Lambda, MF, MGT, M, c, Z, R)
+    M_0  = M0(E2, Delta, Lambda, MF, MGT, M, c, Z, R, spectrum_func)
     return beta * E10 * E2 * M_0
 
-def W0VS(E2, Delta, CS, Lambda, MF, MGT, M, c, Z, R):
+def W0VS(E2, Delta, CS, Lambda, MF, MGT, M, c, Z, R, spectrum_func=None):
     E10  = Delta - E2
     beta = beta_E(E2)
-    M_0  = M0(E2, Delta, Lambda, MF, MGT, M, c, Z, R)
-    M_VS = MVS(E2, Delta, CS, Lambda, MF, MGT, M, c, Z, R)
+    M_0  = M0(E2, Delta, Lambda, MF, MGT, M, c, Z, R, spectrum_func)
+    M_VS = MVS(E2, Delta, CS, Lambda, MF, MGT, M, c, Z, R, spectrum_func)
     return beta * E10 * E2 * (M_0 + M_VS)
 
 #################################################
@@ -187,7 +191,7 @@ def _build_frame(c2, phi2, n):
 #################################################
 # Tree level sampling
 #################################################
-def _sample_chunk(n_chunk, me, Delta, Lambda, MF, MGT, Z, R, M, w0_max):
+def _sample_chunk(n_chunk, me, Delta, Lambda, MF, MGT, Z, R, M, w0_max, spectrum_func):
     rng = np.random.default_rng()
     samples = []
     tries   = 0
@@ -197,26 +201,26 @@ def _sample_chunk(n_chunk, me, Delta, Lambda, MF, MGT, Z, R, M, w0_max):
         u1, u2, u3 = rng.random(3)
         e2 = me + (Delta - me) * u1
         c  = 2 * u2 - 1
-        if u3 * w0_max <= W0(e2, Delta, Lambda, MF, MGT, M, c, Z, R):
+        if u3 * w0_max <= W0(e2, Delta, Lambda, MF, MGT, M, c, Z, R, spectrum_func):
             samples.append((e2, c))
 
     return np.array(samples), tries
 
-def sampleTreeLevel(n, Delta, Lambda, MF, MGT, Z, R, M, num_threads):
+def sampleTreeLevel(n, Delta, Lambda, MF, MGT, Z, R, M, num_threads, spectrum_func=None):
     E2_grid = _make_E2_grid(Delta)
     _, a    = xi_a(Lambda, MF, MGT)
     sign    = 1 if a > 0 else -1
-    w0_max  = np.nanmax(W0(E2_grid, Delta, Lambda, MF, MGT, M, sign, Z, R))
+    w0_max  = np.nanmax(W0(E2_grid, Delta, Lambda, MF, MGT, M, sign, Z, R, spectrum_func))
 
     chunk_sizes = [len(c) for c in np.array_split(np.arange(n), num_threads)]
-    args = [(sz, me, Delta, Lambda, MF, MGT, Z, R, M, w0_max) for sz in chunk_sizes]
+    args = [(sz, me, Delta, Lambda, MF, MGT, Z, R, M, w0_max, spectrum_func) for sz in chunk_sizes]
 
     with ThreadPoolExecutor(max_workers=num_threads) as ex:
         results = list(ex.map(lambda p: _sample_chunk(*p), args))
 
     E2_c_sampled = np.vstack([r[0] for r in results])[:n]
     total_tries  = sum(r[1] for r in results)
-    print(f'[TreeLevel] Efficiency: {n / total_tries:.4f}')
+    print(f'[TreeLevel] Efficiency: {n / total_tries*100:.4f} %')
 
     c2   = 2 * np.random.uniform(size=n) - 1
     phi2 = np.random.uniform(0, 2 * np.pi, n)
@@ -232,7 +236,7 @@ def sampleTreeLevel(n, Delta, Lambda, MF, MGT, Z, R, M, num_threads):
 #################################################
 # Virtual soft sampling
 #################################################
-def _sample_chunk_soft(n_chunk, me, Delta, CS, Lambda, MF, MGT, Z, R, M, w0vs_max):
+def _sample_chunk_soft(n_chunk, me, Delta, CS, Lambda, MF, MGT, Z, R, M, w0vs_max, spectrum_func):
     rng     = np.random.default_rng()
     samples = []
     tries   = 0
@@ -242,27 +246,27 @@ def _sample_chunk_soft(n_chunk, me, Delta, CS, Lambda, MF, MGT, Z, R, M, w0vs_ma
         u1, u2, u3 = rng.random(3)
         e2 = me + (Delta - me) * u1
         c  = 2 * u2 - 1
-        if u3 * w0vs_max <= W0VS(e2, Delta, CS, Lambda, MF, MGT, M, c, Z, R):
+        if u3 * w0vs_max <= W0VS(e2, Delta, CS, Lambda, MF, MGT, M, c, Z, R, spectrum_func):
             samples.append((e2, c))
 
     return np.array(samples), tries
 
 
-def sampleSoft(n, Delta, CS, Lambda, MF, MGT, Z, R, M, num_threads):
+def sampleSoft(n, Delta, CS, Lambda, MF, MGT, Z, R, M, num_threads, spectrum_func=None):
     E2_grid  = _make_E2_grid(Delta)
     _, a     = xi_a(Lambda, MF, MGT)
     sign     = 1 if a > 0 else -1
-    w0vs_max = np.nanmax(W0VS(E2_grid, Delta, CS, Lambda, MF, MGT, M, sign, Z, R))
+    w0vs_max = np.nanmax(W0VS(E2_grid, Delta, CS, Lambda, MF, MGT, M, sign, Z, R, spectrum_func))
 
     chunk_sizes = [len(c) for c in np.array_split(np.arange(n), num_threads)]
-    args = [(sz, me, Delta, CS, Lambda, MF, MGT, Z, R, M, w0vs_max) for sz in chunk_sizes]
+    args = [(sz, me, Delta, CS, Lambda, MF, MGT, Z, R, M, w0vs_max, spectrum_func) for sz in chunk_sizes]
 
     with ThreadPoolExecutor(max_workers=num_threads) as ex:
         results = list(ex.map(lambda p: _sample_chunk_soft(*p), args))
 
     E2_c_sampled = np.vstack([r[0] for r in results])[:n]
     total_tries  = sum(r[1] for r in results)
-    print(f'[Soft] Efficiency: {n / total_tries:.4f}')
+    print(f'[Soft] Efficiency: {n / total_tries*100:.4f} %')
 
     c2   = 2 * np.random.uniform(size=n) - 1
     phi2 = np.random.uniform(0, 2 * np.pi, n)
@@ -312,7 +316,7 @@ def threeBodyDecay(fourMom1, m1, m2, m3, dir2, Q):
 #################################################
 # Hard sampling
 #################################################
-def _sample_chunk_hard(n_chunk, Delta, CS, Lambda, MF, MGT, Z, R, M, wmax,
+def _sample_chunk_hard(n_chunk, Delta, CS, Lambda, MF, MGT, Z, R, M, wmax, spectrum_func,
                        batch_size=4096):
     """
     Génère n_chunk événements hard par rejection sampling par lots.
@@ -364,7 +368,7 @@ def _sample_chunk_hard(n_chunk, Delta, CS, Lambda, MF, MGT, Z, R, M, wmax,
         p12 = beta * E1_v * E2_v * np.einsum('ij,ij->j', n1, n2)
 
         g_calc  = g(beta, E2_v, p2k)
-        mBR_val = MBR(E1_v, E2_v, K_v, p12, p1k, p2k, Lambda, MF, MGT, M, Z, R)
+        mBR_val = MBR(E1_v, E2_v, K_v, p12, p1k, p2k, Lambda, MF, MGT, M, Z, R, spectrum_func)
         weights = K_v * beta * E1_v * E2_v * mBR_val / g_calc / (2**13 * np.pi**8 * M**2)
 
         sum_w += np.sum(weights)
@@ -396,9 +400,9 @@ def _sample_chunk_hard(n_chunk, Delta, CS, Lambda, MF, MGT, Z, R, M, wmax,
     )
 
 
-def sampleHard(n, Delta, CS, Lambda, MF, MGT, Z, R, M, wmax, num_threads):
+def sampleHard(n, Delta, CS, Lambda, MF, MGT, Z, R, M, wmax, num_threads, spectrum_func=None):
     chunk_sizes = [len(c) for c in np.array_split(np.arange(n), num_threads)]
-    args = [(sz, Delta, CS, Lambda, MF, MGT, Z, R, M, wmax) for sz in chunk_sizes]
+    args = [(sz, Delta, CS, Lambda, MF, MGT, Z, R, M, wmax, spectrum_func) for sz in chunk_sizes]
 
     with ThreadPoolExecutor(max_workers=num_threads) as ex:
         results = list(ex.map(lambda p: _sample_chunk_hard(*p), args))
@@ -417,7 +421,7 @@ def sampleHard(n, Delta, CS, Lambda, MF, MGT, Z, R, M, wmax, num_threads):
 #################################################
 # Main sampling function
 #################################################
-def sampleEvents(A, Z, Delta, mi, MF, MGT, nTotal):
+def sampleEvents(A, Z, Delta, mi, MF, MGT, nTotal, file_path):
     R         = r0 * A**(1/3) / NATLENGTH
     M         = mi
     n_threads = os.cpu_count()
@@ -426,17 +430,25 @@ def sampleEvents(A, Z, Delta, mi, MF, MGT, nTotal):
     Er_max = (Q**2 + 2 * Q * me) / (2 * M)
     E0     = Delta
 
-    # Tree level 
-    E2_c_0, n1_0, n2_0 = sampleTreeLevel(nTotal, E0, Lambda, MF, MGT, Z, R, M, n_threads)
+    # ── Construction of the spectral interpolator (one-off) ──
+    if file_path == "":
+        spectrum_func = None
+    else:
+        print(f"[Spectrum] Construction of the interpolator from {file_path} ...")
+        spectrum_func = build_spectrum_interpolator(file_path, Z, R)
+        print("[Spectrum] Interpolator ready.")
+
+    # Tree level
+    E2_c_0, n1_0, n2_0 = sampleTreeLevel(nTotal, E0, Lambda, MF, MGT, Z, R, M, n_threads, spectrum_func)
 
     pE_0        = np.sqrt(E2_c_0[:, 0]**2 - me**2) * n2_0
     fourMom2_0  = np.vstack((E2_c_0[:, 0], pE_0))
     fourMom1_0, fourMom3_0 = threeBodyDecay(fourMom2_0, me, 0, M, n1_0, Q)
 
     # Probabilities and ratios
-    rho_H, _, wmax = MC_rho_H(nTotal, Delta, CS, Lambda, MF, MGT, Z, R, M)
-    rho_0          = rho0(Delta, Lambda, MF, MGT, Z, R)
-    rho_VS         = rhoVS(Delta, CS, Lambda, MF, MGT, Z, R)
+    rho_H, _, wmax = MC_rho_H(nTotal, Delta, CS, Lambda, MF, MGT, Z, R, M, spectrum_func)
+    rho_0          = rho0(Delta, Lambda, MF, MGT, Z, R, spectrum_func)
+    rho_VS         = rhoVS(Delta, CS, Lambda, MF, MGT, Z, R, spectrum_func)
     rho0VS         = rho_0 + rho_VS
 
     PH      = rho_H / (rho0VS + rho_H)
@@ -450,9 +462,9 @@ def sampleEvents(A, Z, Delta, mi, MF, MGT, nTotal):
 
     # Soft & Hard
     with ProcessPoolExecutor() as ex:
-        fut_S = ex.submit(sampleSoft, nS, E0, CS, Lambda, MF, MGT, Z, R, M, n_threads)
-        fut_H = ex.submit(sampleHard, nH, Delta, CS, Lambda, MF, MGT, Z, R, M, wmax, n_threads)
-        E2_c_S, n1_S, n2_S   = fut_S.result()
+        fut_S = ex.submit(sampleSoft, nS, E0, CS, Lambda, MF, MGT, Z, R, M, n_threads, spectrum_func)
+        fut_H = ex.submit(sampleHard, nH, Delta, CS, Lambda, MF, MGT, Z, R, M, wmax, n_threads, spectrum_func)
+        E2_c_S, n1_S, n2_S       = fut_S.result()
         E_H,    n1_H, n2_H, ng_H = fut_H.result()
 
     pE_S       = np.sqrt(E2_c_S[:, 0]**2 - me**2) * n2_S
