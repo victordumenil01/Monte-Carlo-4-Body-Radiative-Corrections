@@ -312,13 +312,14 @@ def build_spectrum_interpolator(file_path, Z, R):
     p  = np.sqrt(energy**2 - 1)
 
     weight = p * energy * (E0 - energy)**2 * fermi_function(energy, Z, R)
+    g = 1 + (ALPHA / (2 * np.pi)) * sirlin_g(energy, E0)
 
     # --- Normalisation globale ---
     num = integrate.simpson(weight * C, x=energy)
     den = integrate.simpson(weight,     x=energy)
 
     C_norm  = C / (num / den)
-    product = corrections * C_norm
+    product = corrections * C_norm / g # divided by sirlin 
 
     # --- Interpolateur (construit une seule fois) ---
     interp_func = interp1d(

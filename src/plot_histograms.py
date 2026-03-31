@@ -17,6 +17,12 @@ def Glück_6He(r_rho):
     RC_gluck_abs_6He = np.array([99.4, 139.6, 182.4, 230.7, 285, 366.2, 433.5, 496.6, 596.2, 696, 795.5, 895, 994.5, 1093.2, 1187.8, 1293, 1320, 1340, 1360, 1380]) /1000
 
     return RC_gluck_abs_6He, RC_gluck_6He
+
+def Glück_32Ar(r_rho):
+    RC_gluck_32Ar = np.array([0.288, 0.297, 0.297, 0.289, 0.275, 0.267, 0.256, 0.243, 0.227, 0.206, 0.179, 0.143, 0.092, 0.015, -0.121, -0.214, -0.359, -0.622, -1.267, -2.156]) /100 + 1 - r_rho/100
+    RC_gluck_abs_32Ar = np.array([0.05, 0.1, 0.2, 0.3, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.92, 0.94, 0.96, 0.98, 0.99]) /2
+
+    return RC_gluck_abs_32Ar, RC_gluck_32Ar
 #################################################
 # Path to files
 #################################################
@@ -141,7 +147,8 @@ def plot_recoil_residual(d, r_rho):
     bins     = d[:, 0]
     residual = d[:, 1]
 
-    RC_gluck_abs_6He, RC_gluck_6He = Glück_6He(r_rho)
+    RC_gluck_abs_6He, RC_gluck_6He = Glück_32Ar(r_rho)
+
 
     fig, ax = plt.subplots()
     ax.plot(bins, residual, color='tab:blue', label='Recoil')
