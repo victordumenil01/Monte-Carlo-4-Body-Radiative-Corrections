@@ -151,19 +151,20 @@ def M0(E2, Delta, Lambda, MF, MGT, M, c, Z, R, spectrum_func=None):
         * sf
     )
 
-def Mtilde(E2, Delta, Lambda, MF, MGT, M):
+def Mtilde(E2, Delta, Lambda, MF, MGT, M, Z, R, spectrum_func=None):
     E10  = Delta - E2
     beta = beta_E(E2)
     N    = 0.5 * np.log((1 + beta) / (1 - beta))
     xi, a = xi_a(Lambda, MF, MGT)
-    return -ALPHA / np.pi * 16 * Gv**2 * (1 - beta**2) / beta * N * M**2 * E10 * E2 * xi
+    sf = fermi_function(E2 / me, Z, R) if spectrum_func is None else spectrum_func(E2 / me)
+    return -ALPHA / np.pi * 16 * Gv**2 * (1 - beta**2) / beta * N * M**2 * E10 * E2 * xi * sf
 
 def MVS(E2, Delta, CS, Lambda, MF, MGT, M, c, Z, R, spectrum_func=None):
     M_0     = M0(E2, Delta, Lambda, MF, MGT, M, c, Z, R, spectrum_func)
-    M_tilde = Mtilde(E2, Delta, Lambda, MF, MGT, M)
+    M_tilde = Mtilde(E2, Delta, Lambda, MF, MGT, M, Z, R, spectrum_func)
     z_VS    = zVS(E2, Delta, CS)
-    sf = fermi_function(E2 / me, Z, R) if spectrum_func is None else spectrum_func(E2 / me)
-    return (z_VS * M_0 + M_tilde) * sf
+    
+    return (z_VS * M_0 + M_tilde) 
 
 def W0(E2, Delta, Lambda, MF, MGT, M, c, Z, R, spectrum_func=None):
     E10  = Delta - E2
@@ -206,7 +207,7 @@ def _sample_chunk(n_chunk, me, Delta, Lambda, MF, MGT, Z, R, M, w0_max, spectrum
 
     return np.array(samples), tries
 
-def sampleTreeLevel(n, Delta, Lambda, MF, MGT, Z, R, M, num_threads, spectrum_func=None):
+def sampleTreeLevel(n, Delta, Lambda, MF, MGT, Z, R, M, num_threads, spectrum_func):
     E2_grid = _make_E2_grid(Delta)
     _, a    = xi_a(Lambda, MF, MGT)
     sign    = 1 if a > 0 else -1
@@ -252,7 +253,7 @@ def _sample_chunk_soft(n_chunk, me, Delta, CS, Lambda, MF, MGT, Z, R, M, w0vs_ma
     return np.array(samples), tries
 
 
-def sampleSoft(n, Delta, CS, Lambda, MF, MGT, Z, R, M, num_threads, spectrum_func=None):
+def sampleSoft(n, Delta, CS, Lambda, MF, MGT, Z, R, M, num_threads, spectrum_func):
     E2_grid  = _make_E2_grid(Delta)
     _, a     = xi_a(Lambda, MF, MGT)
     sign     = 1 if a > 0 else -1
@@ -400,7 +401,7 @@ def _sample_chunk_hard(n_chunk, Delta, CS, Lambda, MF, MGT, Z, R, M, wmax, spect
     )
 
 
-def sampleHard(n, Delta, CS, Lambda, MF, MGT, Z, R, M, wmax, num_threads, spectrum_func=None):
+def sampleHard(n, Delta, CS, Lambda, MF, MGT, Z, R, M, wmax, num_threads, spectrum_func):
     chunk_sizes = [len(c) for c in np.array_split(np.arange(n), num_threads)]
     args = [(sz, Delta, CS, Lambda, MF, MGT, Z, R, M, wmax, spectrum_func) for sz in chunk_sizes]
 

@@ -111,8 +111,13 @@ def sirlin_g(W, W0, **kwargs):
 
 # xi parameter
 def xi_a(Lambda, MF, MGT):
-    xi = MF**2 + (Lambda**2) * MGT**2 
-    a = (MF**2 - (Lambda**2) * MGT**2/3)/xi
+    xi = MF**2 + (Lambda**2) * MGT**2
+
+    if (MF!=0) and (MGT!=0):
+        a = (MF**2 - (Lambda**2) * MGT**2/3)/xi
+    else:
+        a = 0
+        xi = 1
 
     return xi, a
 
