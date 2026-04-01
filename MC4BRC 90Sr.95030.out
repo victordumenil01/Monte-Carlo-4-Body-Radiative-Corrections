@@ -1,0 +1,22 @@
+==========================================
+SLURM_JOB_ID = 95030
+SLURM_NODELIST = ubuntu22
+==========================================
+Initial nucleus : 90Sr
+Final nucleus: 90Y
+Delta =  1057.040524167472 keV
+[Spectrum] Construction of the interpolator from ../data/90Y_BS_output.txt ...
+[Spectrum] Interpolator ready.
+[TreeLevel] Efficiency: 54.3828 %
+PH          : 0.005675
+r_rho       : 1.581177 %
+nS : 99432827   nH : 567173   nS/nTotal : 0.9943
+[Hard] Efficiency H: 29.0174 %
+[Soft] Efficiency: 24.5605 %
+Done
+Histograms saved in :
+  /hist/hist_electron_spectrum.txt
+  /hist/hist_radiative_ratio.txt
+  /hist/hist_recoil_spectrum.txt
+  /hist/hist_recoil_residual.txt
+Execution time : 52109.59504819289 secondes
