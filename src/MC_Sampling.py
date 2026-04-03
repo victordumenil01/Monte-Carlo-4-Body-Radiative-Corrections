@@ -422,7 +422,7 @@ def sampleHard(n, Delta, CS, Lambda, MF, MGT, Z, R, M, wmax, num_threads, spectr
 #################################################
 # Main sampling function
 #################################################
-def sampleEvents(A, Z, Delta, mi, MF, MGT, nTotal, file_path):
+def sampleEvents(A, Z, Delta, mi, MF, MGT, nTotal, file_path, final_nucleus):
     R         = r0 * A**(1/3) / NATLENGTH
     M         = mi
     n_threads = os.cpu_count()
@@ -482,8 +482,8 @@ def sampleEvents(A, Z, Delta, mi, MF, MGT, nTotal, file_path):
     print("Done")
 
     # ── Figures ──
-    bins   = np.linspace(me, Delta, 80)
-    bins_r = np.linspace(0, Er_max, 80)
+    bins   = np.linspace(me, Delta, 1000)
+    bins_r = np.linspace(0, Er_max, 1000)
 
     plt.figure()
     plt.hist(E2_c_0[:, 0], bins=bins)
@@ -522,14 +522,14 @@ def sampleEvents(A, Z, Delta, mi, MF, MGT, nTotal, file_path):
 
     # Save histograms to text files
     # Electron spectrum (counts bruts)
-    np.savetxt("hist/hist_electron_spectrum.txt",
+    np.savetxt("hist/hist_electron_spectrum"+final_nucleus+".txt",
                np.column_stack([bins[:-1], hist_0, hist_S, hist_H, hist_H_sum]),
                header="E2_bin_center  hist_tree  hist_soft  hist_hard  hist_hard_sum",
                fmt="%.6e")
 
     # Ratio of radiative corrections
     sirlin = 1 + ALPHA / (2 * np.pi) * sirlin_g(bins[:-1] / me, Delta / me)
-    np.savetxt("hist/hist_radiative_ratio.txt",
+    np.savetxt("hist/hist_radiative_ratio"+final_nucleus+".txt",
                np.column_stack([bins[:-1],
                                 (hist_S + hist_H)     / hist_0,
                                 (hist_S + hist_H_sum) / hist_0,
@@ -538,21 +538,21 @@ def sampleEvents(A, Z, Delta, mi, MF, MGT, nTotal, file_path):
                fmt="%.6e")
 
     # Recoil spectrum (counts bruts)
-    np.savetxt("hist/hist_recoil_spectrum.txt",
+    np.savetxt("hist/hist_recoil_spectrum"+final_nucleus+".txt",
                np.column_stack([bins_r[:-1], hist_0_r, hist_S_r, hist_H_r]),
                header="Er_bin_center  hist_tree  hist_soft  hist_hard",
                fmt="%.6e")
 
     # Residual of recoil spectrum
-    np.savetxt("hist/hist_recoil_residual.txt",
+    np.savetxt("hist/hist_recoil_residual"+final_nucleus+".txt",
                np.column_stack([bins_r[:-1], (hist_S_r + hist_H_r) / hist_0_r - r_rho/100]),
                header="Er_bin_center  residual",
                fmt="%.6e")
 
     print("Histograms saved in :")
-    print("  /hist/hist_electron_spectrum.txt")
-    print("  /hist/hist_radiative_ratio.txt")
-    print("  /hist/hist_recoil_spectrum.txt")
-    print("  /hist/hist_recoil_residual.txt")
+    print("  /hist/hist_electron_spectrum"+final_nucleus+".txt")
+    print("  /hist/hist_radiative_ratio"+final_nucleus+".txt")
+    print("  /hist/hist_recoil_spectrum"+final_nucleus+".txt")
+    print("  /hist/hist_recoil_residual"+final_nucleus+".txt")
 
     plt.show()

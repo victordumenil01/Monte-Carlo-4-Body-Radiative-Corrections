@@ -59,7 +59,8 @@ if __name__ == "__main__":
                 print("Final nucleus not found or not applicable")
         else:
             print("Nucleus not found")
-
+        
+        final_nuclus = str(result['final']['nucleus_final'])
         excited_energy = input("Enter excited energy (in keV): ")
         mi = float(result['initial']['mass_initial (u)']) * UMASSC2
         mf = float(result['final']['mass_final (u)']) * UMASSC2 + float(excited_energy)
@@ -91,6 +92,7 @@ if __name__ == "__main__":
         else:
             print("Nucleus not found")
 
+        final_result = str(result['final']['nucleus_final'])
         excited_energy = config.get('excited_energy', 0.0)
         mi = float(result['initial']['mass_initial (u)']) * UMASSC2
         mf = float(result['final']['mass_final (u)']) * UMASSC2 + float(excited_energy)
@@ -118,6 +120,7 @@ if __name__ == "__main__":
         else:
             print("Nucleus not found")
 
+        final_result = str(result['final']['nucleus_final'])
         excited_energy = float(sys.argv[3])
         mi = float(result['initial']['mass_initial (u)']) * UMASSC2
         mf = float(result['final']['mass_final (u)']) * UMASSC2 + float(excited_energy)
@@ -133,7 +136,7 @@ if __name__ == "__main__":
         input_data = str(sys.argv[7])
 
     start = time.perf_counter()
-    sampleEvents(A, Z, Delta, mi, MF, MGT, nTotal, input_data)
+    sampleEvents(A, Z, Delta, mi, MF, MGT, nTotal, input_data, final_nucleus)
     end = time.perf_counter()
 
     print(f"Execution time : {end - start} secondes")

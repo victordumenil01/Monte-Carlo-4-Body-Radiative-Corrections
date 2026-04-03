@@ -13,4 +13,4 @@
 
 cd src/
 
-python3 MC4BRC.py 90 39 0 1 1 100000000 ../data/90Zr_BS_output.txt
+python3 MC4BRC.py 90 39 0 1 1 5000000 ../data/90Zr_BS_output.txt
