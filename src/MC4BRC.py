@@ -60,7 +60,7 @@ if __name__ == "__main__":
         else:
             print("Nucleus not found")
         
-        final_nuclus = str(result['final']['nucleus_final'])
+        final_nucleus = str(result['final']['nucleus_final'])
         excited_energy = input("Enter excited energy (in keV): ")
         mi = float(result['initial']['mass_initial (u)']) * UMASSC2
         mf = float(result['final']['mass_final (u)']) * UMASSC2 + float(excited_energy)
@@ -92,7 +92,7 @@ if __name__ == "__main__":
         else:
             print("Nucleus not found")
 
-        final_result = str(result['final']['nucleus_final'])
+        final_nucleus = str(result['final']['nucleus_final'])
         excited_energy = config.get('excited_energy', 0.0)
         mi = float(result['initial']['mass_initial (u)']) * UMASSC2
         mf = float(result['final']['mass_final (u)']) * UMASSC2 + float(excited_energy)
@@ -120,7 +120,7 @@ if __name__ == "__main__":
         else:
             print("Nucleus not found")
 
-        final_result = str(result['final']['nucleus_final'])
+        final_nucleus = str(result['final']['nucleus_final'])
         excited_energy = float(sys.argv[3])
         mi = float(result['initial']['mass_initial (u)']) * UMASSC2
         mf = float(result['final']['mass_final (u)']) * UMASSC2 + float(excited_energy)
