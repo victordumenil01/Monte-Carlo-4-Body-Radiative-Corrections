@@ -11,3 +11,12 @@ Delta =  1057.040524167472 keV
 PH          : 0.005674
 r_rho       : 1.581090 %
 nS : 4971921   nH : 28079   nS/nTotal : 0.9944
+[Hard] Efficiency H: 29.1060 %
+[Soft] Efficiency: 53.8961 %
+Done
+Histograms saved in :
+  /hist/hist_electron_spectrum_90Y.txt
+  /hist/hist_radiative_ratio_90Y.txt
+  /hist/hist_recoil_spectrum_90Y.txt
+  /hist/hist_recoil_residual_90Y.txt
+Execution time : 1473.9471846986562 secondes
