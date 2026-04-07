@@ -158,7 +158,7 @@ def plot_recoil_residual(d, r_rho):
 
     fig, ax = plt.subplots()
     ax.plot(bins, residual, color='tab:blue', label='Recoil')
-    ax.plot(RC_gluck_abs_6He, RC_gluck_6He, color='tab:orange', label='F.Glück 1998')
+    ax.plot(RC_gluck_abs_6He, RC_gluck_6He, color='tab:orange', label='F.Glück')
     ax.set_xlabel("Energy (keV)")
     ax.set_ylabel("Ratio")
     ax.legend()
