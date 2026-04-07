@@ -23,14 +23,20 @@ def Glück_32Ar(r_rho):
     RC_gluck_abs_32Ar = np.array([0.05, 0.1, 0.2, 0.3, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.92, 0.94, 0.96, 0.98, 0.99]) /2
 
     return RC_gluck_abs_32Ar, RC_gluck_32Ar
+
+def Glück_1n(r_rho):
+    RC_gluck_1n = np.array([0.12, 0.11, 0.10, 0.08, 0.05, 0.04, 0.01, -0.02, -0.06, -0.12, -0.16, -0.2, -0.26, -0.32, -0.43, -0.52, -0.63, -0.79, -1.0, -1.34]) /100 + 1 - r_rho/100
+    RC_gluck_abs_1n = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.78, 0.8, 0.83, 0.85, 0.88, 0.9, 0.92, 0.94, 0.96, 0.98]) *0.7341
+
+    return RC_gluck_abs_1n, RC_gluck_1n
 #################################################
 # Path to files
 #################################################
 FILES = {
-    "electron"  : "hist/hist_electron_spectrum.txt",
-    "ratio"     : "hist/hist_radiative_ratio.txt",
-    "recoil"    : "hist/hist_recoil_spectrum.txt",
-    "residual"  : "hist/hist_recoil_residual.txt",
+    "electron"  : "hist/hist_electron_spectrum_1H.txt",
+    "ratio"     : "hist/hist_radiative_ratio_1H.txt",
+    "recoil"    : "hist/hist_recoil_spectrum_1H.txt",
+    "residual"  : "hist/hist_recoil_residual_1H.txt",
 }
 
 
@@ -147,7 +153,7 @@ def plot_recoil_residual(d, r_rho):
     bins     = d[:, 0]
     residual = d[:, 1]
 
-    RC_gluck_abs_6He, RC_gluck_6He = Glück_32Ar(r_rho)
+    RC_gluck_abs_6He, RC_gluck_6He = Glück_1n(r_rho)
 
 
     fig, ax = plt.subplots()
