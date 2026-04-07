@@ -153,13 +153,13 @@ def Mtilde(E2, Delta, Lambda, MF, MGT, M):
     beta = beta_E(E2)
     N    = 0.5 * np.log((1 + beta) / (1 - beta))
     xi, a = xi_a(Lambda, MF, MGT)
-    return -ALPHA / np.pi * 16 * Gv**2 * (1 - beta**2) / beta * N * M**2 * E10 * E2 * xi
+    return -ALPHA / np.pi * 16 * Gv**2 * (1 - beta**2) / beta * N * M**2 * E10 * E2 * xi * fermi_function(E2 / me, Z, R)
 
 def MVS(E2, Delta, CS, Lambda, MF, MGT, M, c, Z, R):
     M_0     = M0(E2, Delta, Lambda, MF, MGT, M, c, Z, R)
     M_tilde = Mtilde(E2, Delta, Lambda, MF, MGT, M)
     z_VS    = zVS(E2, Delta, CS)
-    return (z_VS * M_0 + M_tilde) * fermi_function(E2 / me, Z, R)
+    return (z_VS * M_0 + M_tilde)
 
 def W0(E2, Delta, Lambda, MF, MGT, M, c, Z, R):
     E10  = Delta - E2
